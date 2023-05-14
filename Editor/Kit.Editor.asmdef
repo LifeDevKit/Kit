@@ -1,0 +1,17 @@
+{
+    "name": "Kit.Editor",
+    "rootNamespace": "Kit",
+    "references": [
+        "GUID:c579267770062bf448e75eb160330b7f",
+        "GUID:814219be868a3954fb6cd0271a043898"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

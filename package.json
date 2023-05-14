@@ -1,0 +1,14 @@
+{
+  "name": "com.lifedev.kit",
+  "displayName": "@LifeDev-Kit",
+  "author": "shlifedev",
+  "dependencies": {
+    "com.unity.addressables": "1.21.10",
+    "com.cysharp.unitask": "2.3.3",
+    "com.unity.ugui": "1.0.0"
+  },
+  "version": "1.0.0",
+  "description": "Kit Core\n\n\uc0ac\uc6a9 \uc804 \uc624\ud508 UPM \ub808\uc9c0\uc2a4\ud2b8\ub9ac \ub4f1\ub85d\uc774 \ud544\uc694\ud569\ub2c8\ub2e4.",
+  "unity": "2022.1",
+  "hideInEditor": false
+}
