@@ -45,16 +45,13 @@ namespace Kit
         /// </summary>
         public TStateKey CurState
         {
-            get
-            {
-                return _mCurState;
-            }
+            get => _mCurState;
             set
             {
-                if (m_currentState != null)
-                {
-                    m_currentState?.OnStateExit();
-                }     
+                if (_mCurState.Equals(value))
+                    return;
+
+                m_currentState?.OnStateExit();
                 m_currentState = States[value];
                 _mCurState = value;
                 m_currentState?.OnStateEnter(); 
@@ -125,9 +122,9 @@ namespace Kit
         /// 트랜지션이 2개이상 중첩된경우 And 연산됩니다.
         /// </summary> 
         public void AddTransition(TStateKey from, TStateKey to, Func<bool> shouldTransitionPredicate)
-        {
+        { 
             Transitions ??= new();
-            if (!IsKeyValid(from) || IsKeyValid(to)) 
+            if (!IsKeyValid(from) || !IsKeyValid(to)) 
                 throw new Exception($"{from} or {to} 트랜지션 키를 찾을 수 없습니다. 먼저 키를 등록해주세요.");
             
             Transitions.TryGetValue(from, out var linkData);
@@ -140,6 +137,7 @@ namespace Kit
 
         private void UpdateTransition(float dt)
         {
+            if (Transitions == null) return;
             if (this.Transitions.ContainsKey(this.CurState))
             {
                 var link = this.Transitions[CurState];

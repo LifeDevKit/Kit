@@ -18,6 +18,7 @@ namespace System
         
         IEnumerator DownloadAndAddSprites(List<string> urls)
         {
+            
             foreach (string url in urls)
             {
                 UnityWebRequest www = UnityWebRequestTexture.GetTexture(url);
