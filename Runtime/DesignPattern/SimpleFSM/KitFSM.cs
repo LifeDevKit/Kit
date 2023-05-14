@@ -38,6 +38,30 @@ namespace Kit
         }
 
 
+        private TStateKey _mCurState;
+        
+        /// <summary>
+        /// 상태를 변경합니다.
+        /// </summary>
+        public TStateKey CurState
+        {
+            get
+            {
+                return _mCurState;
+            }
+            set
+            {
+                if (m_currentState != null)
+                {
+                    m_currentState?.OnStateExit();
+                }     
+                m_currentState = States[value];
+                _mCurState = value;
+                m_currentState?.OnStateEnter(); 
+            }
+        }
+
+
         private Dictionary<TStateKey, IState> m_States = new Dictionary<TStateKey, IState>();
         public Dictionary<TStateKey, IState> States
         {
@@ -115,8 +139,20 @@ namespace Kit
 
 
         private void UpdateTransition(float dt)
-        {    
-            
+        {
+            if (this.Transitions.ContainsKey(this.CurState))
+            {
+                var link = this.Transitions[CurState];
+                foreach (var callback in link.callbacks)
+                {
+                    var shouldTransition = callback.ShouldTransition();
+                    if (shouldTransition)
+                    {
+                        CurState = link.to;
+                        return;
+                    }
+                }
+            }
         }
 
         private void UpdateState(float dt)
