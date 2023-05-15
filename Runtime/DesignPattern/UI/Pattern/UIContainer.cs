@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using ImGuiNET;
 using Kit.Utility;
+#if HAS_UIMGUI && UNITY_EDITOR
 using UImGui;
+#endif
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
@@ -26,13 +28,13 @@ namespace Kit.UI
  
         protected override void OnEnable()
         {
-#if UNITY_EDITOR
+#if HAS_UIMGUI && UNITY_EDITOR
             UImGuiUtility.Layout += OnImGUILayout;
 #endif
         } 
         protected override void OnDisable()
         {
-#if UNITY_EDITOR
+#if HAS_UIMGUI && UNITY_EDITOR
             UImGuiUtility.Layout -= OnImGUILayout;
 #endif
         }
@@ -66,9 +68,9 @@ namespace Kit.UI
              this.Log("OnBecameVisible");
         }
 
+#if UNITY_EDITOR && HAS_UIMGUI
         public virtual void OnImGUILayout(UImGui.UImGui context)
-        {
-#if UNITY_EDITOR
+        { 
             if (!UnityEditor.Selection.activeGameObject) return;
             
                 ImGui.Begin($"{this.GetType().Name}");
@@ -77,10 +79,10 @@ namespace Kit.UI
                  
                 ImGui.ShowDemoWindow();
                 ImGui.End(); 
-#endif
+ 
         }
 
- 
+#endif
         private void InitializeDefaultComponents()
         { 
             _rectTransform ??= GetComponent<RectTransform>();

@@ -9,17 +9,7 @@ namespace Kit
 {
 
     public class StateMachine<TStateKey> : IDisposable, Kit.IStateMachine<TStateKey> where TStateKey : struct
-    {
-        public StateMachine(GameObject mLifeObject)
-        {
-            this.m_lifeObject = mLifeObject;
-        }
-        public StateMachine()
-        {
-                
-        }
-        private CancellationTokenSource m_managedTokenSource;
-        private GameObject m_lifeObject;
+    { 
         public class TransitionLink
         {
             public TransitionLink(TStateKey from, TStateKey to)
@@ -51,6 +41,22 @@ namespace Kit
                 set => callbacks = value;
             }
         }
+        public StateMachine(GameObject mLifeObject)
+        {
+            this.m_lifeObject = mLifeObject;
+        }
+        public StateMachine()
+        {
+                
+        }
+        
+        
+        private CancellationTokenSource m_managedTokenSource;
+        private GameObject m_lifeObject;
+        
+        
+        
+        
         
         
         private IState m_currentState; 
@@ -121,7 +127,7 @@ namespace Kit
             if (m_lifeObject != null)
             {
                 var token = m_lifeObject.GetCancellationTokenOnDestroy(); 
-                this.StartUpdateLoopAsync(token);
+                this.StartUpdateLoopAsync(token).Forget();
             }
             else
             { 
@@ -130,7 +136,7 @@ namespace Kit
                 
                 
                 m_managedTokenSource = new CancellationTokenSource();
-                this.StartUpdateLoopAsync(m_managedTokenSource.Token);
+                this.StartUpdateLoopAsync(m_managedTokenSource.Token).Forget();
             } 
               
         }
@@ -171,7 +177,7 @@ namespace Kit
         /// 트랜지션 조건을 Func Predicate로 추가합니다.
         /// 트랜지션이 2개이상 중첩된경우 And 연산됩니다.
         /// </summary> 
-        public void AddTransition(TStateKey from, TStateKey to, Func<bool> shouldTransitionPredicate)
+        public void AddTransition(TStateKey from, TStateKey to, Func<UniTask<bool>> shouldTransitionPredicate)
         { 
             Transitions ??= new();
             if (!IsKeyValid(from) || !IsKeyValid(to)) 
@@ -187,18 +193,32 @@ namespace Kit
         /// <summary>
         /// 이 함수는 CurState에 직접 값을 대입하는것과 동일한 동작을 합니다.
         /// </summary>
-        public void ChangeState(TStateKey key)
+        public async UniTask ChangeState(TStateKey key)
         {
+            if (_mCurState.Equals(key))
+                return;
+
+            if (m_currentState != null)
+            {
+                await m_currentState.OnStateExit();
+            }
+
+            m_currentState = States[key];
+            _mCurState = key;
+
+            if (m_currentState != null)
+            {
+                await m_currentState.OnStateEnter();
+            }
+
             this.CurState = key;
         }
         
         public async UniTask UpdateAsync()
         {
-            /// 트랜지션에 대한 업데이트를 먼저 처리
-            /// 트랜지션에서 작업 대기중인 경우 스테이트 변경이 즉시 적용되지 않을 수 있음.
             await UpdateTransitionAsync(); 
-            /// 이후 스테이트 처리
-            await UpdateState();
+           
+            UpdateState();
         }
 
 
@@ -208,23 +228,24 @@ namespace Kit
             if (this.Transitions.ContainsKey(this.CurState))
             {
                 var link = this.Transitions[CurState];
-                foreach (var callback in link.Callbacks)
+                for (var index = 0; index < link.Callbacks.Count; index++)
                 {
-                    var shouldTransition = callback.ShouldTransition();
+                    var callback = link.Callbacks[index];
+                    var shouldTransition = await callback.ShouldTransition();
                     if (shouldTransition)
                     {
-                        CurState = link.To;
+                        await ChangeState(link.To);
                         return;
                     }
                 }
             }
         }
 
-        private async UniTask UpdateState()
+        private void UpdateState()
         {
             if (States != null && CurrentState != null)
             {
-                await CurrentState.OnStateUpdate();  
+                 CurrentState.OnStateUpdate();  
             } 
         }
         

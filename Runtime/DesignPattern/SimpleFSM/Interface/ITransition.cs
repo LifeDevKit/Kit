@@ -1,4 +1,6 @@
-﻿namespace Kit
+﻿using Cysharp.Threading.Tasks;
+
+namespace Kit
 {
     public interface ITransition
     { 
@@ -6,6 +8,6 @@
         /// 트랜지션 가능여부
         /// </summary>
         /// <returns></returns>
-        bool ShouldTransition();
+        UniTask<bool> ShouldTransition();
     }
 }

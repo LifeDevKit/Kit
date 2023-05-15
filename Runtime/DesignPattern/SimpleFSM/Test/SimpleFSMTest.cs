@@ -1,5 +1,4 @@
-﻿using Cysharp.Threading.Tasks;
-using UnityEditorInternal;
+﻿using Cysharp.Threading.Tasks; 
 using UnityEngine;
 
 namespace Kit.Test
@@ -20,8 +19,7 @@ namespace Kit.Test
             StateMachine.Add(PlayerState.Idle, new PlayerIdleState(this.gameObject));
             StateMachine.Add(PlayerState.Move, new PlayerMoveState(this.gameObject));
 
-            StateMachine.AddTransition(PlayerState.Idle, PlayerState.Move, () => Input.GetKeyDown(KeyCode.Space));
-            StateMachine.AddTransition(PlayerState.Move, PlayerState.Idle, () => Input.GetKeyUp(KeyCode.Space));
+            StateMachine.AddTransition(PlayerState.Idle, PlayerState.Move, async () => Input.GetKeyDown(KeyCode.Space)); 
             StateMachine.InitializeAndStartLoop(PlayerState.Idle);
         }
 
@@ -34,6 +32,8 @@ namespace Kit.Test
             if (GUILayout.Button("Change State To Idle"))
                 StateMachine.CurState = PlayerState.Idle;
             GUILayout.EndHorizontal();
+            
+            GUILayout.Label("Current State:" + StateMachine.CurState.ToString());
         }
     }
 
@@ -45,20 +45,21 @@ namespace Kit.Test
         {
             this.go = obj;
         }
-        public void OnStateEnter()
+
+        public IStateMachine StateMachine { get; set; }
+        public async UniTask OnStateEnter()
         {
-            Debug.Log($"{this.GetType().Name} OnStateEnter");
+            await UniTask.Yield();
         }
 
-        public async UniTask OnStateUpdate()
+        public void OnStateUpdate()
         {
-            Debug.Log($"{this.GetType().Name} OnStateUpdate");
-            await UniTask.Yield(PlayerLoopTiming.Update); 
+           
         }
 
-        public void OnStateExit()
+        public async UniTask OnStateExit()
         {
-            Debug.Log($"{this.GetType().Name} OnStateExit");
+            await UniTask.Yield();
         }
     }
 
@@ -70,20 +71,21 @@ namespace Kit.Test
         {
             this.go = obj;
         }
-        public void OnStateEnter()
+
+        public IStateMachine StateMachine { get; set; }
+        public async UniTask OnStateEnter()
         {
-            Debug.Log($"{this.GetType().Name} OnStateEnter");
+            await UniTask.Delay(1000); 
         }
 
-        public async UniTask OnStateUpdate()
+        public void OnStateUpdate()
+        {
+            Debug.Log("Called Move");
+        }
+
+        public async UniTask OnStateExit()
         { 
-            Debug.Log($"{this.GetType().Name} OnStateUpdate");
-            go.transform.position += new Vector3(1, 0, 0) * Time.deltaTime;
-        }
-
-        public void OnStateExit()
-        {
-            Debug.Log($"{this.GetType().Name} OnStateExit");
+            await UniTask.Delay(1000); 
         }
     }
 }

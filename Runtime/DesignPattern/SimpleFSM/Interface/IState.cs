@@ -5,9 +5,9 @@ namespace Kit
 {
     public interface IState
     {
-
-        void OnStateEnter();
-        UniTask OnStateUpdate();
-        void OnStateExit();
+        IStateMachine StateMachine { get; set; }
+        UniTask OnStateEnter();
+        void OnStateUpdate();
+        UniTask OnStateExit();
     }
 }
