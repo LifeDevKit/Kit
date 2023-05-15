@@ -1,4 +1,4 @@
-﻿namespace Kit.UI.Pattern.Sample
+﻿namespace Kit.UI.Sample
 {
     public class UserInformationView : UIView
     {

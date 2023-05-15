@@ -1,22 +1,55 @@
 ﻿using System;
-using System.Collections.Generic; 
+using System.Collections.Generic;
+using System.Threading;
+using Cysharp.Threading.Tasks;
+using UnityEngine;
+using UnityEngine.LowLevel;
 
 namespace Kit
 {
 
-    public class StateMachine<TStateKey> : Kit.IStateMachine<TStateKey> where TStateKey : struct
-    {    
+    public class StateMachine<TStateKey> : IDisposable, Kit.IStateMachine<TStateKey> where TStateKey : struct
+    {
+        public StateMachine(GameObject mLifeObject)
+        {
+            this.m_lifeObject = mLifeObject;
+        }
+        public StateMachine()
+        {
+                
+        }
+        private CancellationTokenSource m_managedTokenSource;
+        private GameObject m_lifeObject;
         public class TransitionLink
         {
             public TransitionLink(TStateKey from, TStateKey to)
             {
-                this.from = from;
-                this.to = to;
-                this.callbacks = new List<ITransition>();
+                this.From = from;
+                this.To = to;
+                this.Callbacks = new List<ITransition>();
             }
-            public TStateKey from;
-            public TStateKey to;
-            public List<ITransition> callbacks;
+
+            private TStateKey from;
+            private TStateKey to;
+            private List<ITransition> callbacks;
+
+            public TStateKey From
+            {
+                get => from;
+                set => from = value;
+            }
+
+            public TStateKey To
+            {
+                get => to;
+                set => to = value;
+            }
+
+            public List<ITransition> Callbacks
+            {
+                get => callbacks;
+                set => callbacks = value;
+            }
         }
         
         
@@ -70,20 +103,38 @@ namespace Kit
             get;
             set;
         }
-
+        
         /// <summary>
-        /// State 추가를 완료한 후 초기화 호출
+        /// Awake, 생성자 등에서 호출
         /// </summary>
-        /// <param name="defaultState"></param>
-        public void Initialize(TStateKey defaultState)
+        /// <param name="defaultState">기본 상태</param> 
+        /// <exception cref="Exception"></exception>
+        public void InitializeAndStartLoop(TStateKey defaultState)
         {
+         
             if (States.ContainsKey(defaultState) == false)
             {
                 throw new Exception($"등록된 State {defaultState.ToString()} 을(를) 찾을 수 없습니다.");
             }
             this.CurrentState = States[defaultState];
+ 
+            if (m_lifeObject != null)
+            {
+                var token = m_lifeObject.GetCancellationTokenOnDestroy(); 
+                this.StartUpdateLoopAsync(token);
+            }
+            else
+            { 
+                m_managedTokenSource?.Cancel();
+                m_managedTokenSource = null;
+                
+                
+                m_managedTokenSource = new CancellationTokenSource();
+                this.StartUpdateLoopAsync(m_managedTokenSource.Token);
+            } 
+              
         }
-
+        
         public void Add(TStateKey key, IState state)
         {
             this.States.TryAdd(key, state);
@@ -95,6 +146,7 @@ namespace Kit
                 this.States.Remove(key);
         }
 
+        
         private bool IsKeyValid(TStateKey key) => m_States.ContainsKey(key) == true;
         
 
@@ -112,7 +164,7 @@ namespace Kit
             if(linkData == null) 
                 Transitions.Add(from, new TransitionLink(from, to));
             
-            Transitions[from].callbacks.Add(transition);
+            Transitions[from].Callbacks.Add(transition);
         }
 
         /// <summary>
@@ -129,39 +181,74 @@ namespace Kit
             if(linkData == null) 
                 Transitions.Add(from, new TransitionLink(from, to));
 
-            Transitions[from].callbacks.Add(new TransitionFunctor(shouldTransitionPredicate));
+            Transitions[from].Callbacks.Add(new TransitionFunctor(shouldTransitionPredicate));
+        }
+
+        /// <summary>
+        /// 이 함수는 CurState에 직접 값을 대입하는것과 동일한 동작을 합니다.
+        /// </summary>
+        public void ChangeState(TStateKey key)
+        {
+            this.CurState = key;
+        }
+        
+        public async UniTask UpdateAsync()
+        {
+            /// 트랜지션에 대한 업데이트를 먼저 처리
+            /// 트랜지션에서 작업 대기중인 경우 스테이트 변경이 즉시 적용되지 않을 수 있음.
+            await UpdateTransitionAsync(); 
+            /// 이후 스테이트 처리
+            await UpdateState();
         }
 
 
-        private void UpdateTransition(float dt)
-        {
+        private async UniTask UpdateTransitionAsync()
+        { 
             if (Transitions == null) return;
             if (this.Transitions.ContainsKey(this.CurState))
             {
                 var link = this.Transitions[CurState];
-                foreach (var callback in link.callbacks)
+                foreach (var callback in link.Callbacks)
                 {
                     var shouldTransition = callback.ShouldTransition();
                     if (shouldTransition)
                     {
-                        CurState = link.to;
+                        CurState = link.To;
                         return;
                     }
                 }
             }
         }
 
-        private void UpdateState(float dt)
+        private async UniTask UpdateState()
         {
-            if (States != null && CurrentState != null) 
-                CurrentState?.OnStateUpdate(); 
+            if (States != null && CurrentState != null)
+            {
+                await CurrentState.OnStateUpdate();  
+            } 
         }
         
         
-        public void Update(float dt)
+        /// <summary>
+        /// FSM 로직을 업데이트 타이밍에 비동기로 처리합니다.
+        /// </summary>
+        private async UniTaskVoid StartUpdateLoopAsync(CancellationToken token)
         {
-            UpdateTransition(dt); 
-            UpdateState(dt);
-        } 
+            while (true)
+            {
+                if (token.IsCancellationRequested) 
+                    return;
+                
+                await UniTask.Yield(PlayerLoopTiming.Update, token);
+                await UpdateAsync();
+            }
+        }
+          
+
+        public void Dispose()
+        {
+            this.m_managedTokenSource?.Cancel(); 
+            this.m_managedTokenSource = null;
+        }
     }
 }

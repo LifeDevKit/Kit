@@ -1,26 +1,23 @@
-﻿using System.Collections.Generic;
-using Kit.UI.Pattern;
+﻿using System;
+using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
+using Kit.UI;
 using UnityEngine;
 
 namespace Kit.UI
 {
-    public interface IPopup
-    {
-        public Kit.IManager PopupManager { get; }
-        void Show();
-        void Hide();
-    }
- 
-    
-    public class UIPopup<TEvent> : UIContainer, IPopup 
-        where TEvent : struct
+    public abstract class UIPopup : UIContainer, IPopup 
     {
         public bool isShow = false;
-        public IManager PopupManager { get; }
+        public IKitManager PopupKitManager { get; }
 
-        public void Show()
+        public virtual void UpdatePopup<T>(T data)
         {
-            isShow = true;
+            throw new NotImplementedException("팝업 업데이트가 별도로 구현되지 않음.");
+        }
+  
+        public void Show()
+        { 
         }
 
         public void Hide()

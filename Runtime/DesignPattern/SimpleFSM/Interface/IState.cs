@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 
 namespace Kit
 {
@@ -6,7 +7,7 @@ namespace Kit
     {
 
         void OnStateEnter();
-        void OnStateUpdate();
+        UniTask OnStateUpdate();
         void OnStateExit();
     }
 }

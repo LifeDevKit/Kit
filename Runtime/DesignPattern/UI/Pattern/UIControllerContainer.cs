@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Kit.UI.Pattern
+namespace Kit.UI
 { 
  
     /// <summary>

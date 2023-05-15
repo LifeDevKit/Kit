@@ -8,8 +8,12 @@ using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 
-namespace Kit.UI.Pattern
+namespace Kit.UI
 { 
+    /// <summary>
+    /// UI 전용 컨테이너 클래스.
+    /// 핵심이되는 모든 UI는 이 컨테이너를 사용합니다.
+    /// </summary>
     [RequireComponent(typeof(RectTransform))] 
     public abstract class UIContainer : UIBehaviour, ICanvasElement
     {  

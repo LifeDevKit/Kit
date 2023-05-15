@@ -1,10 +1,12 @@
-﻿using UnityEditorInternal;
+﻿using Cysharp.Threading.Tasks;
+using UnityEditorInternal;
 using UnityEngine;
 
 namespace Kit.Test
 {
      internal class SimpleFSMTest : MonoBehaviour
     {
+     
         public enum PlayerState
         {
             Idle,
@@ -14,18 +16,13 @@ namespace Kit.Test
 
         public void Awake()
         {
-            StateMachine = new StateMachine<PlayerState>();
+            StateMachine = new StateMachine<PlayerState>(this.gameObject);
             StateMachine.Add(PlayerState.Idle, new PlayerIdleState(this.gameObject));
             StateMachine.Add(PlayerState.Move, new PlayerMoveState(this.gameObject));
 
             StateMachine.AddTransition(PlayerState.Idle, PlayerState.Move, () => Input.GetKeyDown(KeyCode.Space));
             StateMachine.AddTransition(PlayerState.Move, PlayerState.Idle, () => Input.GetKeyUp(KeyCode.Space));
-            StateMachine.Initialize(PlayerState.Idle);
-        }
-
-        public void Update()
-        {
-            StateMachine.Update(Time.deltaTime);
+            StateMachine.InitializeAndStartLoop(PlayerState.Idle);
         }
 
         public void OnGUI()
@@ -40,7 +37,8 @@ namespace Kit.Test
         }
     }
 
-     internal class PlayerIdleState : IState
+ 
+    internal class PlayerIdleState : IState
     {
         public GameObject go;
         public PlayerIdleState(GameObject obj)
@@ -52,9 +50,10 @@ namespace Kit.Test
             Debug.Log($"{this.GetType().Name} OnStateEnter");
         }
 
-        public void OnStateUpdate()
+        public async UniTask OnStateUpdate()
         {
             Debug.Log($"{this.GetType().Name} OnStateUpdate");
+            await UniTask.Yield(PlayerLoopTiming.Update); 
         }
 
         public void OnStateExit()
@@ -76,8 +75,8 @@ namespace Kit.Test
             Debug.Log($"{this.GetType().Name} OnStateEnter");
         }
 
-        public void OnStateUpdate()
-        {
+        public async UniTask OnStateUpdate()
+        { 
             Debug.Log($"{this.GetType().Name} OnStateUpdate");
             go.transform.position += new Vector3(1, 0, 0) * Time.deltaTime;
         }

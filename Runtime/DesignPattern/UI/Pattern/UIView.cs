@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace Kit.UI.Pattern
+namespace Kit.UI
 {
     public interface IView
     {

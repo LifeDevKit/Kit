@@ -72,7 +72,7 @@ namespace System
             return new Rect(0, 0, 0, 0);
         } 
     }
-    public class KitAtlasManager : SingletonBehaviour<KitAtlasManager>, IManager
+    public class KitAtlasKitManager : SingletonBehaviour<KitAtlasKitManager>, IKitManager
     {
         private Dictionary<string, SpriteAtlas> loadedSpriteAtlas;  
         private Dictionary<string, System.Action<SpriteAtlas>> loadedSpriteBinderCallback;

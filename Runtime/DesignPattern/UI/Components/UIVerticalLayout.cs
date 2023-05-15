@@ -1,4 +1,4 @@
-﻿using Kit.UI.Pattern;
+﻿using Kit.UI;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
