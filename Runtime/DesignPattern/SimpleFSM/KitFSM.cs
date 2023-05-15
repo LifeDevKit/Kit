@@ -4,8 +4,6 @@ using System.Collections.Generic;
 namespace Kit
 {
 
- 
-    
     public class StateMachine<TStateKey> : Kit.IStateMachine<TStateKey> where TStateKey : struct
     {    
         public class TransitionLink
@@ -155,10 +153,8 @@ namespace Kit
 
         private void UpdateState(float dt)
         {
-            if (States != null && CurrentState != null)
-            {
-                CurrentState?.OnStateUpdate();
-            } 
+            if (States != null && CurrentState != null) 
+                CurrentState?.OnStateUpdate(); 
         }
         
         
