@@ -5,6 +5,7 @@ namespace Kit
 {
     public interface IStateMachine
     {
+        
     }
 
     public interface IStateMachine<TStateKey> : IStateMachine

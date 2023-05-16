@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 
 namespace Kit
@@ -15,7 +16,6 @@ namespace Kit
             Functor = functor;
         }
 
-        public async UniTask<bool> ShouldTransition() => await Functor();
-        
+        public async UniTask<bool> ShouldTransition() => await Functor(); 
     }
 }
