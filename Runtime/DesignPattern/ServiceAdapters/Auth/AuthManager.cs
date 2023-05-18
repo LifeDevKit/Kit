@@ -1,4 +1,5 @@
 ﻿using Firebase.Auth;
+using UnityEngine;
 
 namespace Kit.Services.Auth
 {
@@ -7,9 +8,10 @@ namespace Kit.Services.Auth
 
 
         private void Test()
-        {
+        { 
             var instance = Firebase.Auth.FirebaseAuth.DefaultInstance; 
             var provider = GoogleAuthProvider.GetCredential("a", "b"); 
+       
         }
     }
     

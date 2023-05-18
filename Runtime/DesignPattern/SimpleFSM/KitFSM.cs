@@ -88,18 +88,7 @@ namespace Kit
         public TStateKey CurState
         {
             get => _mCurState;
-        }
-
-        public UniTask.Awaiter CurrentStateEnterAwaiter
-        {
-            get;
-            set;
-        }
-        public UniTask.Awaiter CurrentStateExitAwaiter
-        {
-            get;
-            set;
-        }
+        } 
 
 
         private Dictionary<TStateKey, IState> m_States = new Dictionary<TStateKey, IState>();
@@ -131,6 +120,7 @@ namespace Kit
                 .AttachExternalCancellation(this._mLifeObjectForCancel.GetCancellationTokenOnDestroy());
 
             
+            
             await changeStateTask;
                 
             if (_mLifeObjectForCancel != null)
@@ -150,15 +140,13 @@ namespace Kit
         public void Add(TStateKey key, IState state)
         {
             this.States.TryAdd(key, state);
-            state.StateMachine = this;
-            
+            state.StateMachine = this; 
         } 
         
         public void Remove(TStateKey key)
         {
             if (this.States.ContainsKey(key))
-            {
-                 
+            { 
                 var state = this.States[key];
                 if (m_currentState.Equals(state))
                 {

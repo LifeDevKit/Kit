@@ -4,8 +4,8 @@
     {
         
     }
-    public interface IAuthProvider
+    public interface IAuthAPI
     {
-        public IContext context;
+        void Authentification();
     }
 }
